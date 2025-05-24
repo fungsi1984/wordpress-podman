@@ -11,7 +11,9 @@ services:
       - db_data:/var/lib/mysql
 
   wordpress:
-    image: wordpress:fpm
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.wordpress
     restart: always
     environment:
       WORDPRESS_DB_HOST: db:3306
@@ -23,13 +25,15 @@ services:
       - ./nginx/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
 
   php:
-    image: php:8.2-cli
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.php
     container_name: php-cli
     volumes:
       - ./src:/var/www/html
       - ./nginx/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
     working_dir: /var/www/html
-    command: ["php", "-a"]
+    command: ["tail", "-f", "/dev/null"]
 
   adminer:
     image: adminer
