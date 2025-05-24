@@ -1,0 +1,57 @@
+services:
+  db:
+    image: mariadb:10.6
+    restart: always
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - db_data:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:fpm
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - ./src:/var/www/html
+      - ./nginx/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+
+  php:
+    image: php:8.2-cli
+    container_name: php-cli
+    volumes:
+      - ./src:/var/www/html
+      - ./nginx/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+    working_dir: /var/www/html
+    command: ["php", "-a"]
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:latest
+    restart: always
+    ports:
+      - 8080:80
+      - 8443:443
+    volumes:
+      - ./src:/var/www/html:ro
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - wordpress
+
+volumes:
+  db_data:
+  wordpress_data:
